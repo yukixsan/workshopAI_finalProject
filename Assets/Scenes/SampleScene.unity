@@ -131,7 +131,7 @@ GameObject:
   - component: {fileID: 2838363}
   - component: {fileID: 2838362}
   - component: {fileID: 2838361}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cube (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -239,7 +239,7 @@ GameObject:
   - component: {fileID: 46130198}
   - component: {fileID: 46130197}
   - component: {fileID: 46130196}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1218,7 +1218,7 @@ GameObject:
   - component: {fileID: 1429509644}
   - component: {fileID: 1429509643}
   - component: {fileID: 1429509642}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cube (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1326,7 +1326,7 @@ GameObject:
   - component: {fileID: 1490158344}
   - component: {fileID: 1490158343}
   - component: {fileID: 1490158342}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cube (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1342,7 +1342,7 @@ Transform:
   m_GameObject: {fileID: 1490158340}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.5, y: 0.39, z: 0}
+  m_LocalPosition: {x: 1.72, y: 0.39, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 9.667441}
   m_ConstrainProportionsScale: 0
   m_Children: []
