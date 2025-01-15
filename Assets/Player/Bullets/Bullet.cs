@@ -48,8 +48,32 @@ public class Bullet : MonoBehaviour
         transform.position = Vector3.zero;
     }
 
-    private void OnCollisionEnter(Collision collision)
+    /*private void OnCollisionEnter(Collision collision)
     {
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            EnemyHealth enemyHealth = collision.gameObject.GetComponent<EnemyHealth>();
+            
+            enemyHealth.TakeDamage(damage);
+            
+            Destroy();
+
+        }
+
+    }*/
+    private void OnTriggerEnter(Collider other)
+    {
+        Debug.Log($"Bullet triggered by: {other.gameObject.name}");
+        EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
+        if (enemyHealth != null)
+        {
+            enemyHealth.TakeDamage(damage);
+            Debug.Log($"Damage applied to: {other.gameObject.name}");
+        }
+        else
+        {
+            Debug.Log($"No EnemyHealth component found on: {other.gameObject.name}");
+        }
         Destroy();
     }
 }

@@ -2,36 +2,58 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 
 
 public class SkillSystem : MonoBehaviour
 {
 
     public int maxInputs = 5; // Maximum size of the list
-    private List<int> inputList = new List<int>(); // Store the player's inputs
+    private List<string> inputList = new List<string>(); // Store the player's inputs
     public Transform firePoint;
     private Vector3 bulletDirection;
+    public ParticleSystem[] rankBullets;
 
+    [SerializeField] public  DecideCard[] tablePosition;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
-        bulletDirection = gameObject.GetComponent<PlayerMovement>().lookDirection;    
+        print(tablePosition[0]);
+        bulletDirection = gameObject.GetComponent<PlayerMovement>().lookDirection;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnEnable()
     {
-       
+        RouletteSpin.ColorSelected += AddToInputList; // Subscribe to roulette event
     }
 
-    public void OnInput(InputAction.CallbackContext context)
+    private void OnDisable()
     {
-        if(context.performed && inputList.Count < maxInputs) 
+        RouletteSpin.ColorSelected -= AddToInputList; // Unsubscribe from roulette event
+    }
+
+    private void AddToInputList(string color)
+    {
+        if (inputList.Count <= maxInputs)
         {
-            int value = int.Parse(context.control.name); // Get input value (1, 2, 3, or 4)
-            inputList.Add(value);
-            Debug.Log($"Input {value} added. Current List: {string.Join(", ", inputList)}");
+            inputList.Add(color);
+
+            int cardIndex = GetColorIndex(color);
+            Debug.Log($"Color {color} mapped to index {cardIndex}");
+
+            if (cardIndex >= 0 && inputList.Count <= tablePosition.Length)
+            {
+                tablePosition[inputList.Count - 1].Decide(cardIndex);
+            }
+            else
+            {
+                Debug.LogWarning($"Invalid card index: {cardIndex} for color {color}");
+            }
+
+            // Evaluate hand after each input
+            int currentHandRank = EvaluateHand();
+            Debug.Log($"Current Hand Rank: {currentHandRank}");
         }
         else if (inputList.Count >= maxInputs)
         {
@@ -42,65 +64,88 @@ public class SkillSystem : MonoBehaviour
 
     public void OnFire(InputAction.CallbackContext context)
     {
-        if (context.performed && inputList.Count == maxInputs)
+        if (context.performed)
         {
             FireSkill();
         }
     }
     private void FireSkill()
     {
-
+        if (inputList.Count == 0)
+        {
+            Debug.LogWarning("No inputs to evaluate. Cannot fire skill.");
+            return;
+        }
         int handRank = EvaluateHand();
         Debug.Log($"Hand Ranking Index: {handRank}");
-        if (handRank >= 0 && handRank < BulletPool.Instance.bulletPrefabs.Count)
+
+        if (handRank == 5) // High Card
         {
-            Bullet bullet = BulletPool.Instance.SpawnFromPool(handRank, firePoint.position, firePoint.rotation);
-            if (bullet != null)
+            // Get the first card in the input list
+            string firstColor = inputList[0];
+            int bulletIndex = GetColorIndex(firstColor);
+
+            if (bulletIndex >= 0 && bulletIndex < BulletPool.Instance.bulletPrefabs.Count)
             {
-                bullet.Shoot();
-                Debug.Log($"Firing bullet of type index: {handRank}");
+                Bullet bullet = BulletPool.Instance.SpawnFromPool(bulletIndex, firePoint.position, firePoint.rotation);
+                if (bullet != null)
+                {
+                    bullet.Shoot();
+                    Debug.Log($"Firing High Card bullet of type index: {bulletIndex} ({firstColor})");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"Invalid bullet index: {bulletIndex} for color {firstColor}");
             }
         }
-        else
+        else if (handRank >= 0 && handRank < rankBullets.Length) // Other ranks
         {
-            Debug.LogWarning("No bullet prefab found for this hand ranking!");
+            PlayParticleSystem(handRank);
         }
 
-
+        foreach (var dealed in tablePosition)
+        {
+            dealed.HideCurrent();
+        }
         inputList.Clear();
     }
 
     private int EvaluateHand()
     {
-        var grouped = inputList.GroupBy(x => x).ToList(); // Group values by their occurrences
-        var counts = grouped.Select(g => g.Count()).OrderByDescending(x => x).ToList(); // Get the counts sorted
+        /*if (inputList.Count == 0)
+        {
+            Debug.Log("No cards to evaluate.");
+            return 5; // High Card
+        }*/
 
-        if (counts.SequenceEqual(new List<int> { 5 }))
+        // Group values by their occurrences
+        var grouped = inputList.GroupBy(x => x).ToList();
+        var counts = grouped.Select(g => g.Count()).OrderByDescending(x => x).ToList();
+
+        // Adjusted conditions for different list sizes
+        if (inputList.Count >= 5 && counts.SequenceEqual(new List<int> { 5 }))
         {
             Debug.Log("Flush"); // All values are the same
             return 0;
         }
-        else if (counts.SequenceEqual(new List<int> { 3, 2 }))
+        else if (inputList.Count >= 5 && counts.SequenceEqual(new List<int> { 3, 2 }))
         {
-          
             Debug.Log("Full House"); // Three of a kind and a pair
             return 1;
         }
-        else if (counts.SequenceEqual(new List<int> { 3, 1, 1 }))
+        else if (counts.Contains(3))
         {
-            
             Debug.Log("Three of a Kind"); // Three of one kind
             return 2;
         }
-        else if (counts.SequenceEqual(new List<int> { 2, 2, 1 }))
+        else if (counts.Count(c => c == 2) == 2)
         {
             Debug.Log("Two Pair"); // Two pairs
             return 3;
-
         }
-        else if (counts.SequenceEqual(new List<int> { 2, 1, 1, 1 }))
+        else if (counts.Contains(2))
         {
-            
             Debug.Log("Pair"); // One pair
             return 4;
         }
@@ -109,6 +154,40 @@ public class SkillSystem : MonoBehaviour
             Debug.Log("High Card"); // No special hand
             return 5;
         }
+    }
+
+
+    private int GetColorIndex(string color)
+    {
+        switch (color.ToLower())
+        {
+            case "yellow": return 0;
+            case "blue": return 1;
+            case "red": return 2;
+            default: return -1; // Unknown color
+        }
+    }
+
+    private void PlayParticleSystem(int handRank) 
+    {
+        ParticleSystem selectedParticle = rankBullets[handRank];
+
+        if (selectedParticle == null)
+        {
+            Debug.LogWarning($"No particle system assigned for hand rank {handRank}");
+            return;
+        }
+        if (!selectedParticle.gameObject.activeSelf)
+        {
+            selectedParticle.gameObject.SetActive(true);
+        }
+        // Position the particle system at the firePoint
+        selectedParticle.transform.position = firePoint.position;
+        //selectedParticle.transform.rotation = firePoint.rotation;
+
+        // Play the particle system
+        selectedParticle.Play();
+        Debug.Log($"Playing particle system for hand rank {handRank}");
     }
 }
 

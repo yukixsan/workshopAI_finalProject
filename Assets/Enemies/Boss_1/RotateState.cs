@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 
 public class RotateState : State
 {
@@ -24,6 +25,7 @@ public class RotateState : State
             rotateParticles.gameObject.SetActive(true);
             rotateParticles.Play(); // Start the particle effect
         }
+        rotateParticles.transform.DORotate(new Vector3(0, 360, 0), duration , RotateMode.FastBeyond360).SetEase(Ease.Linear).SetLoops(1, LoopType.Incremental);
     }
 
     public override void Exit()
