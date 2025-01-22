@@ -16,6 +16,8 @@ public class SkillSystem : MonoBehaviour
 
     [SerializeField] public  DecideCard[] tablePosition;
 
+    [SerializeField] private PlayerHealth _health;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
@@ -84,20 +86,25 @@ public class SkillSystem : MonoBehaviour
             // Get the first card in the input list
             string firstColor = inputList[0];
             int bulletIndex = GetColorIndex(firstColor);
-
-            if (bulletIndex >= 0 && bulletIndex < BulletPool.Instance.bulletPrefabs.Count)
+            if(bulletIndex == 0)
             {
-                Bullet bullet = BulletPool.Instance.SpawnFromPool(bulletIndex, firePoint.position, firePoint.rotation);
-                if (bullet != null)
-                {
-                    bullet.Shoot();
-                    Debug.Log($"Firing High Card bullet of type index: {bulletIndex} ({firstColor})");
-                }
+                healBullet(10);
+            }
+            else if (bulletIndex > 0 && bulletIndex < BulletPool.Instance.bulletPrefabs.Count)
+            {
+              Bullet bullet = BulletPool.Instance.SpawnFromPool(bulletIndex, firePoint.position, firePoint.rotation);
+              if (bullet != null)
+              {
+                bullet.Shoot();
+                Debug.Log($"Firing High Card bullet of type index: {bulletIndex} ({firstColor})");
+              }
             }
             else
             {
                 Debug.LogWarning($"Invalid bullet index: {bulletIndex} for color {firstColor}");
             }
+            
+                  
         }
         else if (handRank >= 0 && handRank < rankBullets.Length) // Other ranks
         {
@@ -113,12 +120,6 @@ public class SkillSystem : MonoBehaviour
 
     private int EvaluateHand()
     {
-        /*if (inputList.Count == 0)
-        {
-            Debug.Log("No cards to evaluate.");
-            return 5; // High Card
-        }*/
-
         // Group values by their occurrences
         var grouped = inputList.GroupBy(x => x).ToList();
         var counts = grouped.Select(g => g.Count()).OrderByDescending(x => x).ToList();
@@ -166,6 +167,11 @@ public class SkillSystem : MonoBehaviour
             case "red": return 2;
             default: return -1; // Unknown color
         }
+    }
+
+    private void healBullet(int healAmount) 
+    {
+        _health.currentHealth = Mathf.Min(_health.currentHealth + healAmount, _health.maxHealth);
     }
 
     private void PlayParticleSystem(int handRank) 

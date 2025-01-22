@@ -41,7 +41,10 @@ public class RouletteSpin : MonoBehaviour
         HighlightCard(currentIndex); // Ensure the last card is highlighted
         if (ColorSelected != null)
         {
+            
+            cards[currentIndex].transform.DOPunchRotation(new Vector3(0, 0, 10), popUpDuration, 20);
             ColorSelected.Invoke(cards[currentIndex].name); // Use card name for simplicity
+            
             Debug.Log($"Selected Color: {cards[currentIndex].name}");
         }
         }

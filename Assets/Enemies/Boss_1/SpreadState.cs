@@ -4,21 +4,30 @@ using UnityEngine;
 public class SpreadState : State
 {
     [SerializeField] private ParticleSystem spreadParticles; // Assign in Inspector
-    [SerializeField] private float duration = 5f; // Duration of the attack
+    [SerializeField] private int minDuration; // Duration of the attack
+    [SerializeField] private int maxDuration;
 
-    private StateMachine stateMachine;
+    protected StateMachine stateMachine;
     private float timer;
 
+    [SerializeField] private Vector3 movementAxis = Vector3.right; // Axis for movement (e.g., left/right = Vector3.right)
+    [SerializeField] private float movementDistance = 4f; // Distance for back-and-forth movement
+    [SerializeField] private float movementSpeed = 2f; // Speed of movement
+    private Vector3 initialPosition; // To track the starting position
+    [SerializeField] private bool movingForward = true; // Direction of movement
+    [SerializeField] private bool isMoving = false;
     private void Awake()
     {
         stateMachine = GetComponent<StateMachine>();
+        initialPosition = transform.position;
     }
 
     public override void Enter()
     {
         Debug.Log("Entering Spread State");
 
-        timer = duration; // Reset the timer
+        isMoving = true; 
+        timer = Random.Range(minDuration, maxDuration);
         if (spreadParticles != null)
         {
             spreadParticles.gameObject.SetActive(true);
@@ -29,6 +38,8 @@ public class SpreadState : State
     public override void Exit()
     {
         Debug.Log("Exiting Spread State");
+
+        isMoving = false;
 
         if (spreadParticles != null)
         {
@@ -45,7 +56,28 @@ public class SpreadState : State
             // Transition to the next state (example: IdleState)
             stateMachine.ChangeState<RotateState>();
         }
+        if(isMoving)
+        {
+            Move();
+        }
 
-        //Debug.Log($"Spread Attack Active: {timer:F2} seconds remaining");
+    }
+
+    private void Move() 
+    {
+        float step = movementSpeed * Time.deltaTime;
+        Vector3 targetPosition = movingForward
+            ? initialPosition + movementAxis.normalized * movementDistance
+            : initialPosition - movementAxis.normalized * movementDistance;
+
+        // Move the enemy toward the target position
+        transform.position = Vector3.MoveTowards(transform.position, targetPosition, step);
+
+        // Check if the enemy reached the target position
+        if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
+        {
+            movingForward = !movingForward; // Reverse the direction
+        }
     }
 }
+

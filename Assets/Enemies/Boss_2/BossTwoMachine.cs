@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class StateMachine : MonoBehaviour
+public class BossTwoMachine : MonoBehaviour
 {
     public State CurrentState => _currentState; // Expose current state
     private State _currentState;
@@ -8,7 +8,7 @@ public class StateMachine : MonoBehaviour
 
     private void Start()
     {
-        ChangeState<SpreadState>(); // Set initial state
+        ChangeState<CirclingState>(); // Set initial state
     }
 
     public void ChangeState<T>() where T : State
@@ -31,10 +31,17 @@ public class StateMachine : MonoBehaviour
         inTransition = true;
 
         _currentState?.Exit(); // Exit current state
-        yield return null; // Ensure smooth transition between frames
-        _currentState = newState;
-        _currentState?.Enter(); // Enter new state
+        if (_currentState != null)
+        {
+            _currentState.enabled = false;
+        }
 
+        yield return null; // Ensure smooth transition between frames
+
+        _currentState = newState;
+        _currentState.enabled = true;
+        _currentState?.Enter(); // Enter new state
+        print(_currentState);
         inTransition = false;
     }
 

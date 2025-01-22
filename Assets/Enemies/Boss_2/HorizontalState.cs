@@ -1,52 +1,48 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using DG.Tweening;
 
-public class RotateState : State
+public class HorizontalState : State
 {
-    [SerializeField] private ParticleSystem rotateParticles; // Assign in Inspector
+    [SerializeField] private ParticleSystem horizontalParticle; // Assign in Inspector
     [SerializeField] private int minDuration; // Duration of the attack
     [SerializeField] private int maxDuration;
 
-    protected StateMachine stateMachine;
+    protected BossTwoMachine stateMachine;
     private float timer;
 
-    [SerializeField] private Vector3 movementAxis = Vector3.up; // Axis for movement (e.g., left/right = Vector3.right)
+    [SerializeField] private Vector3 movementAxis = Vector3.down; // Axis for movement (e.g., left/right = Vector3.right)
     [SerializeField] private float movementDistance = 4f; // Distance for back-and-forth movement
     [SerializeField] private float movementSpeed = 2f; // Speed of movement
     private Vector3 initialPosition; // To track the starting position
     [SerializeField] private bool movingForward = true; // Direction of movement
     [SerializeField] private bool isMoving = false;
-
     private void Awake()
     {
-        stateMachine = GetComponent<StateMachine>();
+        stateMachine = GetComponent<BossTwoMachine>();
         initialPosition = transform.position;
     }
 
     public override void Enter()
     {
-        print("Start rotate attack_1");
+        Debug.Log("Entering Horizontal State");
 
         isMoving = true;
         timer = Random.Range(minDuration, maxDuration);
-        if (rotateParticles != null)
+        if (horizontalParticle != null)
         {
-            rotateParticles.gameObject.SetActive(true);
-            rotateParticles.Play(); // Start the particle effect
+            horizontalParticle.gameObject.SetActive(true);
+            horizontalParticle.Play(); // Start the particle effect
         }
-        rotateParticles.transform.DORotate(new Vector3(0, 360, 0), timer , RotateMode.FastBeyond360).SetEase(Ease.Linear).SetLoops(1, LoopType.Incremental);
     }
 
     public override void Exit()
     {
-        print("Exiting rotate attack_1");
+        Debug.Log("Exiting Horizontal State");
 
         isMoving = false;
-        if(rotateParticles != null)
+
+        if (horizontalParticle != null)
         {
-            rotateParticles.Stop();
+            horizontalParticle.Stop(); // Stop the particle effect
         }
     }
 
@@ -57,16 +53,15 @@ public class RotateState : State
         if (timer <= 0f)
         {
             // Transition to the next state (example: IdleState)
-            stateMachine.ChangeState<BurstState>();
+            stateMachine.ChangeState<CirclingState>();
         }
-
         if (isMoving)
         {
             Move();
         }
 
-        //Debug.Log($"Rotate Attack Active: {timer:F2} seconds remaining");
     }
+
     private void Move()
     {
         float step = movementSpeed * Time.deltaTime;

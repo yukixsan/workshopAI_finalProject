@@ -13,7 +13,6 @@ public class Bullet : MonoBehaviour
     {
         transform.parent = null;
         rb.AddForce(transform.up * speed, ForceMode.Impulse);
-        Debug.Log(transform.rotation);
     }
 
     void Awake()
@@ -48,19 +47,6 @@ public class Bullet : MonoBehaviour
         transform.position = Vector3.zero;
     }
 
-    /*private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Enemy"))
-        {
-            EnemyHealth enemyHealth = collision.gameObject.GetComponent<EnemyHealth>();
-            
-            enemyHealth.TakeDamage(damage);
-            
-            Destroy();
-
-        }
-
-    }*/
     private void OnTriggerEnter(Collider other)
     {
         Debug.Log($"Bullet triggered by: {other.gameObject.name}");

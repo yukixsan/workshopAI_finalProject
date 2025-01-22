@@ -47,6 +47,7 @@ public class DecideCard : MonoBehaviour
         activeCard = cards[cardIndex];
         activeImage = cardImages[cardIndex];
         activeCard.SetActive(true);
+        activeCard.transform.DOPunchScale(new Vector3(0.5f, 0.5f, 0), 0.5f, 20, 0.25f);
     }
 
     private void FadeOutAndDisable(GameObject card, Image image)
