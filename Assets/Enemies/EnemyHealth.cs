@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using UnityEngine;
 
 public class EnemyHealth : MonoBehaviour
@@ -5,15 +7,28 @@ public class EnemyHealth : MonoBehaviour
     public float maxHealth = 100f;
     public float currentHealth;
 
+    public event Action OnDie;
+    private bool isDying = false;
+    private StateMachine stateMachine;
+    private BossTwoMachine bossTwoMachine;
+
+    [SerializeField] private AudioClip damageSound;
+
     void Awake()
     {
         currentHealth = maxHealth;
+    
+        stateMachine = GetComponent<StateMachine>();
+        bossTwoMachine = GetComponent<BossTwoMachine>();
     }
 
     public void TakeDamage(float damage)
     {
+        if (isDying) return;
+
         currentHealth -= damage;
-        Debug.Log($"{gameObject.name} took {damage} damage. Remaining health: {currentHealth}");
+        SoundManager.Instance.PlaySFX(damageSound);
+        //Debug.Log($"{gameObject.name} took {damage} damage. Remaining health: {currentHealth}");
 
         if (currentHealth <= 0)
         {
@@ -23,8 +38,18 @@ public class EnemyHealth : MonoBehaviour
 
     private void Die()
     {
-        Debug.Log($"{gameObject.name} has died.");
-        // Handle enemy death (e.g., disable, play animation, etc.)
-        gameObject.SetActive(false); // Temporary: deactivate enemy
+        isDying = true;
+        if(bossTwoMachine = null)
+        {
+            stateMachine.enabled = false;
+        }
+        else if (stateMachine = null)
+        {
+            bossTwoMachine.enabled = false;
+        }
+        
+        gameObject.SetActive(false);
+        OnDie?.Invoke();
+        
     }
 }

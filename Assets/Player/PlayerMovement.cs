@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using DG.Tweening;
+using UnityEngine.EventSystems;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -19,14 +20,32 @@ public class PlayerMovement : MonoBehaviour
     private PlayerHealth playerHealth; // Reference to PlayerHealth
     [SerializeField] private bool isKnockedBack = false;
 
+    [Header("ANIMATIONS")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private GameObject hitBoxIcon;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         playerHealth = GetComponent<PlayerHealth>();
+
     }
     public void OnMove(InputAction.CallbackContext context)
     {
         move = context.ReadValue<Vector2>();
+    }
+    public void OnFocus(InputAction.CallbackContext context)
+    {
+        if (context.performed) // When Shift is pressed
+        {
+            speed -= 7f;
+            hitBoxIcon.SetActive(true);
+        }
+        else if (context.canceled) // When Shift is released
+        {
+            speed += 7f;
+            hitBoxIcon.SetActive(false);
+        }
     }
     public void OnMouseLook(InputAction.CallbackContext context)
     {
@@ -37,7 +56,7 @@ public class PlayerMovement : MonoBehaviour
         joystickLook = context.ReadValue<Vector2>();
     }
 
-    void Update()
+    private void FixedUpdate()
     {
         if(!isKnockedBack) 
         {
@@ -52,6 +71,10 @@ public class PlayerMovement : MonoBehaviour
 
             MovePlayer();
         }
+
+
+        
+            hitBoxIcon.transform.rotation = Quaternion.identity;
         
     }
 
@@ -66,19 +89,19 @@ public class PlayerMovement : MonoBehaviour
             Vector3 hitPoint = ray.GetPoint(enter);
 
             // Calculate the direction from the player to the mouse position
-            var direction = hitPoint - transform.position;
+            lookDirection = hitPoint - transform.position;
 
             // Ignore height differences
-            direction.y = 0;
+            lookDirection.y = 0;
 
             // Handle small distances by defaulting to current forward direction
-            if (direction.sqrMagnitude < 0.01f)
+            if (lookDirection.sqrMagnitude < 0.01f)
             {
-                direction = transform.forward;
+                lookDirection = transform.forward;
             }
 
             // Rotate the player to face the direction
-            transform.forward = direction;
+            transform.forward = lookDirection;
         }
     }
 
@@ -99,7 +122,9 @@ public class PlayerMovement : MonoBehaviour
         Vector3 movement = new Vector3(move.x, 0f, move.y);
         if (movement.sqrMagnitude > 0.1f)
         {
-            transform.Translate(movement * speed * Time.deltaTime, Space.World);
+            //transform.Translate(movement * speed * Time.deltaTime, Space.World);
+            
+            rb.linearVelocity = movement * speed ;
 
             // Only rotate with movement when not aiming
             if (!isOnPc || joystickLook.sqrMagnitude < 0.1f)
@@ -108,7 +133,25 @@ public class PlayerMovement : MonoBehaviour
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             }
         }
+        //Handle Animation
+        animator.SetBool("isMoving", movement.sqrMagnitude > 0.1f);
+        //Handle blend layer
+        if (move.x != 0f && move.y == 0)
+        {
+            animator.SetLayerWeight(1, 1);
+        }
+        else if (move.x != 0f && move.y != 0)
+        {
+            float dotProduct = Vector3.Dot(movement.normalized, Vector3.forward);
+            float tangentWeight = Mathf.Abs(dotProduct) < 0.7f ? 0.85f : 1f; // Blend weight based on angle
+            animator.SetLayerWeight(1, tangentWeight);
+        }
+        else
+        {
+            animator.SetLayerWeight(1, 0f);
+        }
     }
+
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -137,4 +180,6 @@ public class PlayerMovement : MonoBehaviour
         rb.linearVelocity = Vector3.zero;
         isKnockedBack = false; // Re-enable input
     }
+
+    
 }

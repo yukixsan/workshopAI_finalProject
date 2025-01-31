@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1308372059119896402}
   - component: {fileID: 3438484500522057837}
   - component: {fileID: 2530504663467565683}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Yellow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -153,3 +153,6 @@ MonoBehaviour:
   damage: 10
   speed: 30
   lifeTime: 5
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 128

@@ -13,10 +13,17 @@ public class SkillSystem : MonoBehaviour
     public Transform firePoint;
     private Vector3 bulletDirection;
     public ParticleSystem[] rankBullets;
+    [SerializeField] private ParticleSystem healEffect;
+ 
 
     [SerializeField] public  DecideCard[] tablePosition;
 
     [SerializeField] private PlayerHealth _health;
+
+    [SerializeField] private Animator animator;
+
+    [SerializeField] private AudioClip shootSound;
+    [SerializeField] private AudioClip dealSound;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
@@ -47,6 +54,7 @@ public class SkillSystem : MonoBehaviour
             if (cardIndex >= 0 && inputList.Count <= tablePosition.Length)
             {
                 tablePosition[inputList.Count - 1].Decide(cardIndex);
+                SoundManager.Instance.PlaySFX(dealSound);
             }
             else
             {
@@ -66,9 +74,10 @@ public class SkillSystem : MonoBehaviour
 
     public void OnFire(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        if (context.performed )
         {
             FireSkill();
+            SoundManager.Instance.PlaySFX(shootSound);
         }
     }
     private void FireSkill()
@@ -88,7 +97,7 @@ public class SkillSystem : MonoBehaviour
             int bulletIndex = GetColorIndex(firstColor);
             if(bulletIndex == 0)
             {
-                healBullet(10);
+                healBullet(50);
             }
             else if (bulletIndex > 0 && bulletIndex < BulletPool.Instance.bulletPrefabs.Count)
             {
@@ -110,6 +119,7 @@ public class SkillSystem : MonoBehaviour
         {
             PlayParticleSystem(handRank);
         }
+
 
         foreach (var dealed in tablePosition)
         {
@@ -171,7 +181,12 @@ public class SkillSystem : MonoBehaviour
 
     private void healBullet(int healAmount) 
     {
-        _health.currentHealth = Mathf.Min(_health.currentHealth + healAmount, _health.maxHealth);
+        _health.HealDamage(healAmount);
+        if (!healEffect.gameObject.activeSelf)
+        {
+            healEffect.gameObject.SetActive(true);
+        }
+        healEffect.Play();
     }
 
     private void PlayParticleSystem(int handRank) 
@@ -195,5 +210,7 @@ public class SkillSystem : MonoBehaviour
         selectedParticle.Play();
         Debug.Log($"Playing particle system for hand rank {handRank}");
     }
+
+    
 }
 

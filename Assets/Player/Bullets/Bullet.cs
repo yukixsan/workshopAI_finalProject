@@ -9,6 +9,7 @@ public class Bullet : MonoBehaviour
     private float currentLife;
     private Rigidbody rb;
 
+    [SerializeField] private LayerMask targetMask;
     public void Shoot()
     {
         transform.parent = null;
@@ -49,6 +50,11 @@ public class Bullet : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (((1 << other.gameObject.layer) & targetMask) == 0)
+        {
+            
+            return; // Exit if not in the target layer
+        }
         Debug.Log($"Bullet triggered by: {other.gameObject.name}");
         EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
         if (enemyHealth != null)

@@ -6,9 +6,14 @@ public class BossTwoMachine : MonoBehaviour
     private State _currentState;
     private bool inTransition;
 
-    private void Start()
+    [Header("Phase Settings")]
+    private bool phase2Triggered = false; // Tracks if Phase 2 has been triggered
+    [SerializeField] private EnemyHealth enemyHealth; // Reference to the EnemyHealth component
+    [SerializeField] private float threshold = 5f; // Threshold to trigger Phase 2
+
+    private void Awake()
     {
-        ChangeState<CirclingState>(); // Set initial state
+        ChangeState<SecondIntroState>(); // Set initial state
     }
 
     public void ChangeState<T>() where T : State
@@ -22,6 +27,7 @@ public class BossTwoMachine : MonoBehaviour
 
         if (_currentState != targetState && !inTransition)
         {
+            StopAllCoroutines();
             StartCoroutine(TransitionToState(targetState));
         }
     }
@@ -50,6 +56,19 @@ public class BossTwoMachine : MonoBehaviour
         if (_currentState != null && !inTransition)
         {
             _currentState.Update(); // Call the state's Update method
+        }
+        CheckPhase();
+    }
+    private void CheckPhase()
+    {
+        if (phase2Triggered) return;
+
+        if (enemyHealth.currentHealth <= enemyHealth.maxHealth * (threshold / 10f))
+        {
+            phase2Triggered = true;
+
+            print("Enter phase 2");
+            ChangeState<DiceTransitionState>();
         }
     }
 }

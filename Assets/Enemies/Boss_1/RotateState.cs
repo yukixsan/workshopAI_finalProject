@@ -52,6 +52,8 @@ public class RotateState : State
 
     public override void Update()
     {
+        
+
         timer -= Time.deltaTime; // Decrease timer
 
         if (timer <= 0f)

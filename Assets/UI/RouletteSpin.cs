@@ -1,6 +1,7 @@
 using UnityEngine;
 using DG.Tweening;
 using System.Collections;
+using UnityEngine.InputSystem;
 
 public class RouletteSpin : MonoBehaviour
 {
@@ -18,9 +19,12 @@ public class RouletteSpin : MonoBehaviour
     private float currentRotation = 0f;
     private int currentIndex = 0; // Keeps track of the highlighted card
 
-    private void Update()
+    [SerializeField] private AudioClip spinSfx;
+
+
+    public void OnSpin(InputAction.CallbackContext context)
     {
-        if (Input.GetKeyDown(KeyCode.Space)) // Use Space to toggle spinning
+        if (context.performed) // Use Space to toggle spinning
         {
             if (!isSpinning)
                 StartRoulette();
@@ -29,9 +33,11 @@ public class RouletteSpin : MonoBehaviour
         }
     }
 
+
     private void StartRoulette()
     {
         isSpinning = true;
+        
         StartCoroutine(SpinCoroutine());
     }
 
@@ -66,7 +72,7 @@ public class RouletteSpin : MonoBehaviour
 
             // Pop-up effect for the next card
             HighlightCard(currentIndex);
-
+            SoundManager.Instance.PlaySFX(spinSfx);
             // Wait for the next tick
             yield return new WaitForSeconds(tickDuration);
         }
