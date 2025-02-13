@@ -21,11 +21,16 @@ public class RouletteSpin : MonoBehaviour
 
     [SerializeField] private AudioClip spinSfx;
 
+    private float inputCooldown = .3f;
+    private float inputTimer;
+    private bool canSpin = true;
 
     public void OnSpin(InputAction.CallbackContext context)
     {
-        if (context.performed) // Use Space to toggle spinning
+        if (context.performed && canSpin) // Use Space to toggle spinning
         {
+            canSpin = false;
+
             if (!isSpinning)
                 StartRoulette();
             else
@@ -51,7 +56,7 @@ public class RouletteSpin : MonoBehaviour
             cards[currentIndex].transform.DOPunchRotation(new Vector3(0, 0, 10), popUpDuration, 20);
             ColorSelected.Invoke(cards[currentIndex].name); // Use card name for simplicity
             
-            Debug.Log($"Selected Color: {cards[currentIndex].name}");
+            //Debug.Log($"Selected Color: {cards[currentIndex].name}");
         }
         }
 
@@ -83,5 +88,19 @@ public class RouletteSpin : MonoBehaviour
         // Scale up the current card for the pop-up effect
         cards[index].DOScale(popUpScale, popUpDuration)
                     .SetEase(Ease.OutQuad);
+    }
+    private void FixedUpdate()
+    {
+        if (!canSpin)
+        {
+            inputTimer -= Time.deltaTime;
+            if (inputTimer <= 0)
+            {
+                inputTimer = inputCooldown;
+                canSpin = true;
+
+            }
+        }
+
     }
 }

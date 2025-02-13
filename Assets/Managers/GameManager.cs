@@ -8,8 +8,12 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
-    [Header("Input")]
+    [Header("Player")]
     [SerializeField] private PlayerInput playerInput;
+    [SerializeField] private GameObject player;
+    [SerializeField] private ParticleSystem playerExplosion;
+    [SerializeField] private AudioClip deathSound;
+    private PlayerHealth playerHealth;
 
 
     [Header("Bosses")]
@@ -34,7 +38,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject winScreen;
     [SerializeField] private CanvasGroup winCanvas;
     [SerializeField] private GameObject pauseScreen;
+    [SerializeField] private GameObject helpScreen;
+    [SerializeField] private GameObject dieScreen;
     private bool winGame;
+    private bool loseGame;
     private bool pauseGame;
 
     [Header("Warning Text")]
@@ -42,19 +49,26 @@ public class GameManager : MonoBehaviour
     private BarsManager bars;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    private void Start()
+    private void Awake()
     {
 
-        cursorHotspot = new Vector2(cursorTex.width/2, cursorTex.height/2);
+        playerHealth = player.GetComponent<PlayerHealth>();
+        playerHealth.OnDie += () => StartCoroutine(KillPlayer());
+        playerInput.SwitchCurrentActionMap("Player");
+
+        cursorHotspot = new Vector2(cursorTex.width / 2, cursorTex.height / 2);
         Cursor.SetCursor(cursorTex, cursorHotspot, CursorMode.Auto);
 
         winGame = false;
+        loseGame = false;
         winScreen.gameObject.SetActive(false);
         winCanvas.alpha = 0f;
 
         pauseScreen.gameObject.SetActive(false);
         pauseGame = false;
-        
+
+        helpScreen.gameObject.SetActive(false);
+
         bars = GetComponent<BarsManager>();
         bars.enabled = false;
 
@@ -63,7 +77,7 @@ public class GameManager : MonoBehaviour
 
         // Set up death event listeners
         firstBossHealth.OnDie += () => StartCoroutine(HandleBossDeath(firstBoss, secondBoss, secondBossBgm));
-        secondBossHealth.OnDie += () => StartCoroutine(WinGame());
+        secondBossHealth.OnDie += () => StartCoroutine(WinGame(secondBoss));
 
         // Enable only the first boss at the start
         firstBoss.SetActive(false);
@@ -76,7 +90,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Escape) && !winGame)
+        if (Input.GetKeyDown(KeyCode.Escape) && !winGame && !loseGame)
         {
             TogglePause();
         }
@@ -84,11 +98,11 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator HandleBossDeath(GameObject currentBoss, GameObject nextBoss, AudioClip nextBgm)
     {
-        if(currentBoss != null)
+        if (currentBoss != null)
         {
             Vector3 bossPosition = currentBoss.transform.position;
             explosion.transform.position = new Vector3(bossPosition.x, 4, bossPosition.z);
-            if(explosion != null)
+            if (explosion != null)
             {
                 explosion.gameObject.SetActive(true);
                 explosion.Play();
@@ -101,11 +115,11 @@ public class GameManager : MonoBehaviour
         // Wait for the death animation or delay
         yield return new WaitForSeconds(bossDeathDelay);
 
-        if(nextBoss != null)
+        if (nextBoss != null)
         {
             // Enable the next boss
             nextBoss.SetActive(true);
-            Debug.Log($"Boss {nextBoss.name} is now active!");
+            //Debug.Log($"Boss {nextBoss.name} is now active!");
 
             PlayBgm(nextBgm);
         }
@@ -117,18 +131,18 @@ public class GameManager : MonoBehaviour
         if (warningText == null) yield break;
         warningText.gameObject.SetActive(true);
 
-            // Set the warning text based on the next boss
-            if (nextBoss == firstBoss)
-            {
-                warningText.text = "WARNING!\nROULETTE";
-            }
-            else if (nextBoss == secondBoss)
-            {
-                warningText.text = "WARNING!\nDICE CUP";
-            }
+        // Set the warning text based on the next boss
+        if (nextBoss == firstBoss)
+        {
+            warningText.text = "WARNING!\nROULETTE";
+        }
+        else if (nextBoss == secondBoss)
+        {
+            warningText.text = "WARNING!\nDICE CUP";
+        }
 
         bars.enabled = true;
-        
+
         float screenWidth = Screen.width;
         // Reset position far to the right
         Vector3 startPosition = new Vector3(screenWidth * 1.2f, warningText.transform.position.y, 0);
@@ -150,13 +164,21 @@ public class GameManager : MonoBehaviour
         bars.enabled = false;
     }
 
-    private IEnumerator WinGame()
+    private IEnumerator WinGame(GameObject currentBoss)
     {
+        winGame = true;
+        Vector3 bossPosition = currentBoss.transform.position;
+        explosion.transform.position = new Vector3(bossPosition.x, 4, bossPosition.z);
+        if (explosion != null)
+        {
+            explosion.gameObject.SetActive(true);
+            explosion.Play();
+        }
         yield return new WaitForSecondsRealtime(2f);
 
-        if (winGame) yield break;
-        
-        Cursor.SetCursor(null,Vector2.zero,CursorMode.Auto);
+        if (!winGame) yield break;
+
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
         Time.timeScale = 0f;
         if (winScreen != null)
         {
@@ -165,6 +187,29 @@ public class GameManager : MonoBehaviour
         }
 
         StartCoroutine(FadeOutBgm());
+    }
+
+    private IEnumerator KillPlayer()
+    {
+        loseGame = true;
+        Vector3 playerPos = player.transform.position;
+        playerExplosion.transform.position = playerPos;
+        if (playerExplosion != null)
+        {
+            playerExplosion.gameObject.SetActive(true);
+            playerExplosion.Play();
+        }
+        playerInput.SwitchCurrentActionMap("UI");
+
+        yield return new WaitForSeconds(.5f);
+
+        SoundManager.Instance.PlaySFX(deathSound);
+
+
+        dieScreen.SetActive(true);
+        yield return new WaitForSeconds(.5f);
+        Time.timeScale = 0f;
+
     }
 
     private void PlayBgm(AudioClip bgmClip)
@@ -193,8 +238,6 @@ public class GameManager : MonoBehaviour
         bgmSource.Stop();
     }
 
-   
-    
     private void TogglePause()
     {
         pauseGame = !pauseGame; // Toggle pause state
@@ -217,15 +260,38 @@ public class GameManager : MonoBehaviour
     public void RestartGame()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name);
+        pauseScreen.SetActive(false);
+        dieScreen.SetActive(false);
+        LevelManager.Instance.LoadScene(SceneManager.GetActiveScene().name);
+
     }
 
     public void ToMenu()
     {
+        pauseScreen.SetActive(false);
+        dieScreen.SetActive(false);
+
         Time.timeScale = 1f;
-        SceneManager.LoadScene("MainMenu");
+        LevelManager.Instance.LoadScene("MainMenu");
+
     }
 
+    public void RestartKill()
+    {
+        Time.timeScale = 1f;
+        pauseScreen.SetActive(false);
+        dieScreen.SetActive(false);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+    public void MenuKill()
+    {
+        pauseScreen.SetActive(false);
+        dieScreen.SetActive(false);
+
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenu");
+
+    }
     public void Resume()
     {
         Time.timeScale = 1f;
@@ -236,15 +302,16 @@ public class GameManager : MonoBehaviour
 
     public void OpenHelp()
     {
-
+        helpScreen.gameObject.SetActive(true);
     }
 
     public void CloseHelp()
     {
+        helpScreen.gameObject.SetActive(false);
 
     }
 
-    
+
 }
 
 

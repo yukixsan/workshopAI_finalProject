@@ -5,6 +5,7 @@ public class MenuManager : MonoBehaviour
 {
     [Header("UI Elements")]
     [SerializeField] private GameObject tutorialPanel; // Assign the tutorial panel in the Inspector
+    [SerializeField] private GameObject creditsPanel;
     [SerializeField] private AudioSource backgroundMusic; // Assign the background music AudioSource
 
     private bool isMusicOn = true; // Tracks the music state
@@ -20,8 +21,7 @@ public class MenuManager : MonoBehaviour
 
     public void PlayGame()
     {
-        Debug.Log("Starting the game...");
-        SceneManager.LoadScene("MainGameplay"); // Replace "GameScene" with the name of your game scene
+        LevelManager.Instance.LoadScene("MainGameplay");
     }
 
     // Toggle background music on or off
@@ -34,7 +34,7 @@ public class MenuManager : MonoBehaviour
             backgroundMusic.mute = !isMusicOn;
         }
 
-        Debug.Log($"Music is now {(isMusicOn ? "On" : "Off")}");
+        
     }
 
     // Show the tutorial panel
@@ -44,7 +44,7 @@ public class MenuManager : MonoBehaviour
         {
             tutorialPanel.SetActive(true);
         }
-        Debug.Log("Tutorial panel opened.");
+        
     }
 
     // Hide the tutorial panel
@@ -54,7 +54,23 @@ public class MenuManager : MonoBehaviour
         {
             tutorialPanel.SetActive(false);
         }
-        Debug.Log("Tutorial panel closed.");
+        
+    }
+
+    public void ShowCredits()
+    {
+        if (creditsPanel != null)
+        {
+            creditsPanel.SetActive(true);
+        }
+    }
+
+    public void CloseCredits()
+    {
+        if (creditsPanel != null)
+        {
+            creditsPanel.SetActive(false);
+        }
     }
 
     // Exit the game

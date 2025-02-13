@@ -3,6 +3,8 @@ using UnityEngine.InputSystem;
 using System.Linq;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using TMPro;
+using DG.Tweening;
 
 
 public class SkillSystem : MonoBehaviour
@@ -14,9 +16,10 @@ public class SkillSystem : MonoBehaviour
     private Vector3 bulletDirection;
     public ParticleSystem[] rankBullets;
     [SerializeField] private ParticleSystem healEffect;
- 
 
+    [Header("UI Elements")]
     [SerializeField] public  DecideCard[] tablePosition;
+    [SerializeField] private TextMeshProUGUI infoText;
 
     [SerializeField] private PlayerHealth _health;
 
@@ -25,9 +28,14 @@ public class SkillSystem : MonoBehaviour
     [SerializeField] private AudioClip shootSound;
     [SerializeField] private AudioClip dealSound;
 
+    private float inputCooldown = .3f;
+    private float inputTimer;
+    private bool canAttack = true;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
+        inputTimer = inputCooldown;
+
         print(tablePosition[0]);
         bulletDirection = gameObject.GetComponent<PlayerMovement>().lookDirection;
     }
@@ -49,7 +57,7 @@ public class SkillSystem : MonoBehaviour
             inputList.Add(color);
 
             int cardIndex = GetColorIndex(color);
-            Debug.Log($"Color {color} mapped to index {cardIndex}");
+            //Debug.Log($"Color {color} mapped to index {cardIndex}");
 
             if (cardIndex >= 0 && inputList.Count <= tablePosition.Length)
             {
@@ -58,25 +66,26 @@ public class SkillSystem : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Invalid card index: {cardIndex} for color {color}");
+                //Debug.LogWarning($"Invalid card index: {cardIndex} for color {color}");
             }
 
             // Evaluate hand after each input
             int currentHandRank = EvaluateHand();
-            Debug.Log($"Current Hand Rank: {currentHandRank}");
+            //Debug.Log($"Current Hand Rank: {currentHandRank}");
         }
         else if (inputList.Count >= maxInputs)
         {
             EvaluateHand();
-            Debug.Log("Input list is full. Fire the skill or clear the list.");
+            //Debug.Log("Input list is full. Fire the skill or clear the list.");
         }
     }
 
     public void OnFire(InputAction.CallbackContext context)
     {
-        if (context.performed )
+        if (context.performed && canAttack)
         {
             FireSkill();
+            canAttack = false;
             SoundManager.Instance.PlaySFX(shootSound);
         }
     }
@@ -84,11 +93,11 @@ public class SkillSystem : MonoBehaviour
     {
         if (inputList.Count == 0)
         {
-            Debug.LogWarning("No inputs to evaluate. Cannot fire skill.");
+            //Debug.LogWarning("No inputs to evaluate. Cannot fire skill.");
             return;
         }
         int handRank = EvaluateHand();
-        Debug.Log($"Hand Ranking Index: {handRank}");
+        //Debug.Log($"Hand Ranking Index: {handRank}");
 
         if (handRank == 5) // High Card
         {
@@ -105,7 +114,7 @@ public class SkillSystem : MonoBehaviour
               if (bullet != null)
               {
                 bullet.Shoot();
-                Debug.Log($"Firing High Card bullet of type index: {bulletIndex} ({firstColor})");
+                //Debug.Log($"Firing High Card bullet of type index: {bulletIndex} ({firstColor})");
               }
             }
             else
@@ -126,6 +135,7 @@ public class SkillSystem : MonoBehaviour
             dealed.HideCurrent();
         }
         inputList.Clear();
+        UpdateHandMessage("");
     }
 
     private int EvaluateHand()
@@ -137,36 +147,45 @@ public class SkillSystem : MonoBehaviour
         // Adjusted conditions for different list sizes
         if (inputList.Count >= 5 && counts.SequenceEqual(new List<int> { 5 }))
         {
-            Debug.Log("Flush"); // All values are the same
+            UpdateHandMessage("Flush Five"); // All values are the same
             return 0;
         }
         else if (inputList.Count >= 5 && counts.SequenceEqual(new List<int> { 3, 2 }))
         {
-            Debug.Log("Full House"); // Three of a kind and a pair
+            UpdateHandMessage("Full House"); // Three of a kind and a pair
             return 1;
         }
         else if (counts.Contains(3))
         {
-            Debug.Log("Three of a Kind"); // Three of one kind
+            UpdateHandMessage("Three of a Kind"); // Three of one kind
             return 2;
         }
         else if (counts.Count(c => c == 2) == 2)
         {
-            Debug.Log("Two Pair"); // Two pairs
+            UpdateHandMessage("Two Pair"); // Two pairs
             return 3;
         }
         else if (counts.Contains(2))
         {
-            Debug.Log("Pair"); // One pair
+            UpdateHandMessage("Pair"); // One pair
             return 4;
         }
         else
         {
-            Debug.Log("High Card"); // No special hand
+            UpdateHandMessage("Basic Card"); // No special hand
             return 5;
         }
     }
 
+    private void UpdateHandMessage(string message)
+    {
+        infoText.transform.DOPunchRotation(new Vector3(0, 0, 5), 0.3f,5, 1).OnComplete(()=> { infoText.transform.DORewind();});
+        if (infoText != null)
+        {
+            
+            infoText.text = message;
+        }
+    }
 
     private int GetColorIndex(string color)
     {
@@ -208,9 +227,23 @@ public class SkillSystem : MonoBehaviour
 
         // Play the particle system
         selectedParticle.Play();
-        Debug.Log($"Playing particle system for hand rank {handRank}");
+        //Debug.Log($"Playing particle system for hand rank {handRank}");
     }
 
-    
+    private void FixedUpdate()
+    {
+        if (!canAttack)
+        {
+            inputTimer -= Time.deltaTime;
+            if (inputTimer <= 0)
+            {
+                inputTimer = inputCooldown;
+                canAttack = true;
+
+            }
+        }
+        
+    }
+
 }
 
