@@ -1,29 +1,20 @@
 using UnityEngine;
 
-public class BurstState : State
+public class BurstState : BossAttackState
 {
-    [SerializeField] private ParticleSystem burstParticles; // Assign in Inspector
-    [SerializeField] private int minDuration; // Duration of the attack
-    [SerializeField] private int maxDuration;
+    
 
-    protected StateMachine stateMachine;
-    private float timer;
-
-    private void Awake()
-    {
-        stateMachine = GetComponent<StateMachine>();
-      
-    }
+    
 
     public override void Enter()
     {
         Debug.Log("Entering Burst State");
 
         timer = Random.Range(minDuration, maxDuration);
-        if (burstParticles != null)
+        if (attackParticles != null)
         {
-            burstParticles.gameObject.SetActive(true);
-            burstParticles.Play(); // Start the particle effect
+            attackParticles.gameObject.SetActive(true);
+            attackParticles.Play(); // Start the particle effect
         }
     }
 
@@ -32,9 +23,9 @@ public class BurstState : State
         Debug.Log("Exiting Burst State");
 
 
-        if (burstParticles != null)
+        if (attackParticles != null)
         {
-            burstParticles.Stop(); // Stop the particle effect
+            attackParticles.Stop(); // Stop the particle effect
         }
     }
 

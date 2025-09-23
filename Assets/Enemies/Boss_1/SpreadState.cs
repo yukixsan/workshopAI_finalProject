@@ -1,14 +1,11 @@
 using Unity.IO.LowLevel.Unsafe;
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class SpreadState : State
+public class SpreadState : BossAttackState
 {
-    [SerializeField] private ParticleSystem spreadParticles; // Assign in Inspector
-    [SerializeField] private int minDuration; // Duration of the attack
-    [SerializeField] private int maxDuration;
 
-    protected StateMachine stateMachine;
-    private float timer;
+ 
 
     [SerializeField] private Vector3 movementAxis = Vector3.right; // Axis for movement (e.g., left/right = Vector3.right)
     [SerializeField] private float movementDistance = 4f; // Distance for back-and-forth movement
@@ -16,22 +13,24 @@ public class SpreadState : State
     private Vector3 initialPosition; // To track the starting position
     [SerializeField] private bool movingForward = true; // Direction of movement
     [SerializeField] private bool isMoving = false;
-    private void Awake()
+
+    protected override void Awake()
     {
-        stateMachine = GetComponent<StateMachine>();
-        initialPosition = transform.position;
+        base.Awake();
+                initialPosition = transform.position;
+
     }
 
     public override void Enter()
     {
         Debug.Log("Entering Spread State");
 
-        isMoving = true; 
+        isMoving = true;
         timer = Random.Range(minDuration, maxDuration);
-        if (spreadParticles != null)
+        if (attackParticles != null)
         {
-            spreadParticles.gameObject.SetActive(true);
-            spreadParticles.Play(); // Start the particle effect
+            attackParticles.gameObject.SetActive(true);
+            attackParticles.Play(); // Start the particle effect
         }
     }
 
@@ -41,9 +40,9 @@ public class SpreadState : State
 
         isMoving = false;
 
-        if (spreadParticles != null)
+        if (attackParticles != null)
         {
-            spreadParticles.Stop(); // Stop the particle effect
+            attackParticles.Stop(); // Stop the particle effect
         }
     }
 

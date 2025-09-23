@@ -3,14 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 
-public class RotateState : State
+public class RotateState : BossAttackState
 {
-    [SerializeField] private ParticleSystem rotateParticles; // Assign in Inspector
-    [SerializeField] private int minDuration; // Duration of the attack
-    [SerializeField] private int maxDuration;
-
-    protected StateMachine stateMachine;
-    private float timer;
+  
 
     [SerializeField] private Vector3 movementAxis = Vector3.up; // Axis for movement (e.g., left/right = Vector3.right)
     [SerializeField] private float movementDistance = 4f; // Distance for back-and-forth movement
@@ -19,10 +14,11 @@ public class RotateState : State
     [SerializeField] private bool movingForward = true; // Direction of movement
     [SerializeField] private bool isMoving = false;
 
-    private void Awake()
+   protected override void Awake()
     {
-        stateMachine = GetComponent<StateMachine>();
-        initialPosition = transform.position;
+        base.Awake();
+                initialPosition = transform.position;
+
     }
 
     public override void Enter()
@@ -31,12 +27,12 @@ public class RotateState : State
 
         isMoving = true;
         timer = Random.Range(minDuration, maxDuration);
-        if (rotateParticles != null)
+        if (attackParticles != null)
         {
-            rotateParticles.gameObject.SetActive(true);
-            rotateParticles.Play(); // Start the particle effect
+            attackParticles.gameObject.SetActive(true);
+            attackParticles.Play(); // Start the particle effect
         }
-        rotateParticles.transform.DORotate(new Vector3(0, 360, 0), timer , RotateMode.FastBeyond360).SetEase(Ease.Linear).SetLoops(1, LoopType.Incremental);
+        attackParticles.transform.DORotate(new Vector3(0, 360, 0), timer , RotateMode.FastBeyond360).SetEase(Ease.Linear).SetLoops(1, LoopType.Incremental);
     }
 
     public override void Exit()
@@ -44,9 +40,9 @@ public class RotateState : State
         print("Exiting rotate attack_1");
 
         isMoving = false;
-        if(rotateParticles != null)
+        if(attackParticles != null)
         {
-            rotateParticles.Stop();
+            attackParticles.Stop();
         }
     }
 

@@ -1,10 +1,12 @@
 using UnityEngine;
-
+using TMPro;
 public class BossTwoMachine : MonoBehaviour
 {
     public State CurrentState => _currentState; // Expose current state
     private State _currentState;
     private bool inTransition;
+     [Header("UI debug")]
+    [SerializeField] private TMP_Text _debugText;
 
     [Header("Phase Settings")]
     private bool phase2Triggered = false; // Tracks if Phase 2 has been triggered
@@ -47,7 +49,8 @@ public class BossTwoMachine : MonoBehaviour
         _currentState = newState;
         _currentState.enabled = true;
         _currentState?.Enter(); // Enter new state
-        print(_currentState);
+        _debugText.text = $"Current State: {_currentState.GetType().Name}";
+        
         inTransition = false;
     }
 
