@@ -79570,7 +79570,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a989f84dddc46c41a6e8d2848686c6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotateParticles: {fileID: 414017526}
+  attackParticles: {fileID: 414017526}
   minDuration: 5
   maxDuration: 8
   movementAxis: {x: 0, y: 0, z: 1}
@@ -79590,7 +79590,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 489c2fb853436c149a014ddbd6d00ea4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spreadParticles: {fileID: 658768982}
+  attackParticles: {fileID: 658768982}
   minDuration: 5
   maxDuration: 8
   movementAxis: {x: 1, y: 0, z: 0}
@@ -79610,6 +79610,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 263a63f710c0fab4789a4af464fc7d50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _debugText: {fileID: 0}
   enemyHealth: {fileID: 1202454669}
   threshold: 4
 --- !u!114 &1202454669
@@ -79639,7 +79640,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee37037ee97c6ba4eae489d299fc64c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  burstParticles: {fileID: 1187054509}
+  attackParticles: {fileID: 1187054509}
   minDuration: 6
   maxDuration: 8
 --- !u!114 &1202454671
@@ -100880,6 +100881,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0533b9f44802ab7488fd8203ef79a908, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _debugText: {fileID: 0}
   enemyHealth: {fileID: 1506233491}
   threshold: 5
 --- !u!114 &1506233496

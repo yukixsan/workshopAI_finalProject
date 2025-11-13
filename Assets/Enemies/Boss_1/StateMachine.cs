@@ -51,7 +51,7 @@ public class StateMachine : MonoBehaviour
         _currentState.enabled = true;
         _currentState?.Enter(); // Enter new state
 
-        _debugText.text = $"Current State: {_currentState.GetType().Name}";
+        //_debugText.text = $"Current State: {_currentState.GetType().Name}";
 
         inTransition = false;
     }
