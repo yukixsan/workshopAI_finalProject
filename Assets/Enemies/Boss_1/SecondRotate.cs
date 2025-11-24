@@ -6,6 +6,7 @@ public class SecondRotate : State
 
     [SerializeField] private ParticleSystem _rotateParticle;
     [SerializeField] private int duration;
+    [SerializeField] private ChasePlayer chaser;
 
     protected StateMachine stateMachine;
     private float timer;
@@ -13,6 +14,7 @@ public class SecondRotate : State
     private void Awake()
     {
         stateMachine = GetComponent<StateMachine>();
+        chaser = GetComponent<ChasePlayer>();   
     }
 
     public override void Enter()
@@ -24,6 +26,8 @@ public class SecondRotate : State
             _rotateParticle.gameObject.SetActive(true);
             _rotateParticle.Play();           
         }
+        chaser.enabled = true;
+
         transform.rotation = Quaternion.identity;
 
         transform.DORotate(new Vector3(0, 360, 0), timer, RotateMode.FastBeyond360).SetEase(Ease.Flash).SetLoops(1, LoopType.Incremental);
@@ -45,6 +49,8 @@ public class SecondRotate : State
         
         if (timer <= 0f )
         {
+            chaser.enabled = false;
+
             stateMachine.ChangeState<SecondBurst>();
         }
     }

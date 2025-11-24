@@ -5,34 +5,34 @@ public class SecondBurst : State
     [SerializeField] ParticleSystem _burstParticle;
     [SerializeField] private int duration;
 
-    protected StateMachine stateMachine;
-    private float timer;
+    [Header("Waypoint Movement")]
+    [SerializeField] private Transform[] waypoints;   // Assign in Inspector
+    [SerializeField] private float movementSpeed = 3f;
+    [SerializeField] private float stopDistance = 0.1f;
 
-    [SerializeField] private Vector3 movementAxis = Vector3.up; // Axis for movement (e.g., left/right = Vector3.right)
-    [SerializeField] private float movementDistance = 4f; // Distance for back-and-forth movement
-    [SerializeField] private float movementSpeed = 2f; // Speed of movement
-    private Vector3 initialPosition; // To track the starting position
-    [SerializeField] private bool movingForward = true; // Direction of movement
-    [SerializeField] private bool isMoving = false;
+    private StateMachine stateMachine;
+    private int waypointIndex = 0;
+    private bool isMoving = false;
 
     private void Awake()
     {
         stateMachine = GetComponent<StateMachine>();    
-        initialPosition = transform.position;
     }
 
     public override void Enter()
     {
-        print("Entering second burst state");
+        print("Entering SecondBurst state");
 
-        /*movementAxis = new Vector3(
-           Random.Range(0, 2) == 0 ? 0 : 1, // Randomly -1 or 1 for X
-           movementAxis.y,                   // Keep Y as is
-           Random.Range(0, 2) == 0 ? 0 : 1);  // Randomly -1 or 1 for Z*/
+        if (waypoints == null || waypoints.Length == 0)
+        {
+            Debug.LogWarning("SecondBurst: No waypoints assigned.");
+            stateMachine.ChangeState<SecondRotate>();
+            return;
+        }
 
-
+        waypointIndex = 0;
         isMoving = true;
-        timer = duration;
+
         if(_burstParticle != null)
         {
             _burstParticle.gameObject.SetActive(true);
@@ -54,32 +54,35 @@ public class SecondBurst : State
 
     public override void Update()
     {
-        timer -= Time.deltaTime;
-        if (timer <= 0f)
-        {
-            // Transition to the next state (example: IdleState)
-            stateMachine.ChangeState<SecondRotate>();
-        }
 
         if (isMoving)
         {
-            Move();
+            MoveAlongWaypoints();
         }
     }
-    private void Move()
+     private void MoveAlongWaypoints()
     {
-        float step = movementSpeed * Time.deltaTime;
-        Vector3 targetPosition = movingForward
-            ? initialPosition + movementAxis.normalized * movementDistance
-            : initialPosition - movementAxis.normalized * movementDistance;
+        Transform target = waypoints[waypointIndex];
+        if (target == null) return;
 
-        // Move the enemy toward the target position
-        transform.position = Vector3.MoveTowards(transform.position, targetPosition, step);
+        // Move toward current waypoint
+        transform.position = Vector3.MoveTowards(
+            transform.position,
+            target.position,
+            movementSpeed * Time.deltaTime
+        );
 
-        // Check if the enemy reached the target position
-        if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
+        // Check if reached the waypoint
+        if (Vector3.Distance(transform.position, target.position) <= stopDistance)
         {
-            movingForward = !movingForward; // Reverse the direction
+            waypointIndex++;
+
+            // Reached last waypoint → change state
+            if (waypointIndex >= waypoints.Length)
+            {
+                stateMachine.ChangeState<SecondRotate>();
+                return;
+            }
         }
     }
 }

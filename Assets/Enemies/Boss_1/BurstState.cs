@@ -1,11 +1,10 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class BurstState : BossAttackState
 {
-    
-
-    
-
+     [SerializeField] private ChasePlayer chaser;
+   
     public override void Enter()
     {
         Debug.Log("Entering Burst State");
@@ -16,6 +15,7 @@ public class BurstState : BossAttackState
             attackParticles.gameObject.SetActive(true);
             attackParticles.Play(); // Start the particle effect
         }
+        chaser.enabled = true;
     }
 
     public override void Exit()
@@ -35,6 +35,8 @@ public class BurstState : BossAttackState
 
         if (timer <= 0f)
         {
+            chaser.enabled = false;
+
             // Transition to the next state (example: IdleState)
             stateMachine.ChangeState<SpreadState>();
         }
