@@ -1,2 +1,1 @@
-# GLHFight
-Bossrush gamejam 2025 entry
+#Yuki Hanif Arsan | 5223600061
