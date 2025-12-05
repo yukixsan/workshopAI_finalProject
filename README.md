@@ -1,2 +1,1 @@
-# workshopAI_finalProject
-project akhir workshop AI
+Yuki Hanif Arsan | 5223600061
